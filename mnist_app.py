@@ -8,98 +8,73 @@ st.set_page_config(page_title="Digit Classifier", page_icon="✦", layout="cente
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
 
-html, body, [class*="css"] {
+html, body, .stApp, [class*="css"] {
     background-color: #0a0a0a !important;
     color: #f0f0f0;
 }
 
-.stApp { background-color: #0a0a0a; }
+/* Hide canvas toolbar completely */
+.canvas-toolbar, [data-testid="stCanvasToolbar"],
+canvas + div { display: none !important; }
 
-.app-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    color: #555;
-    text-transform: uppercase;
-    text-align: center;
-    margin-bottom: 4px;
+/* Center everything */
+[data-testid="stVerticalBlock"] {
+    align-items: center;
 }
 
-.app-title {
-    font-family: 'Space Mono', monospace;
-    font-size: 26px;
-    font-weight: 700;
-    color: #f0f0f0;
-    text-align: center;
-    margin-bottom: 2rem;
+/* Buttons */
+.stButton > button {
+    font-family: 'Space Mono', monospace !important;
+    font-size: 12px !important;
+    letter-spacing: 0.1em !important;
+    border-radius: 6px !important;
+    height: 48px !important;
+    width: 100% !important;
+    transition: all 0.15s !important;
 }
 
-.result-digit {
-    font-family: 'Space Mono', monospace;
-    font-size: 72px;
-    font-weight: 700;
-    color: #e8ff47;
-    text-align: center;
-    line-height: 1;
-}
-
-.result-confidence {
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    color: #555;
-    text-align: center;
-    margin-top: 4px;
-}
-
-div[data-testid="stHorizontalBlock"] { gap: 10px; }
-
-button[kind="secondary"] {
+.stButton:first-child > button {
     background: transparent !important;
     border: 1px solid #2a2a2a !important;
     color: #888 !important;
-    font-family: 'Space Mono', monospace !important;
-    font-size: 12px !important;
-    letter-spacing: 0.1em !important;
-    border-radius: 6px !important;
-    width: 100% !important;
 }
 
-button[kind="secondary"]:hover {
+.stButton:first-child > button:hover {
     border-color: #444 !important;
-    color: #bbb !important;
+    color: #ccc !important;
 }
 
-button[kind="primary"] {
+.stButton:last-child > button {
     background: #e8ff47 !important;
     border: none !important;
     color: #0a0a0a !important;
-    font-family: 'Space Mono', monospace !important;
-    font-size: 12px !important;
     font-weight: 700 !important;
-    letter-spacing: 0.1em !important;
-    border-radius: 6px !important;
-    width: 100% !important;
 }
 
-button[kind="primary"]:hover { background: #f0ff6a !important; }
-
-/* Hide canvas toolbar */
-.canvas-toolbar { display: none !important; }
+.stButton:last-child > button:hover {
+    background: #f0ff6a !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
 model = joblib.load('mnist_model.pkl')
 
-st.markdown('<div class="app-label">neural network</div>', unsafe_allow_html=True)
-st.markdown('<div class="app-title">Digit Classifier</div>', unsafe_allow_html=True)
+# Header
+st.markdown("""
+    <div style="text-align:center; margin-bottom: 2rem;">
+        <div style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.2em; color:#555; text-transform:uppercase; margin-bottom:6px;">neural network</div>
+        <div style="font-family:'Space Mono',monospace; font-size:26px; font-weight:700; color:#f0f0f0;">Digit Classifier</div>
+    </div>
+""", unsafe_allow_html=True)
 
-col_left, col_right, col_right2 = st.columns([1, 3, 1])
-with col_right:
-    if "canvas_key" not in st.session_state:
-        st.session_state.canvas_key = 0
+# Canvas — centered using columns
+if "canvas_key" not in st.session_state:
+    st.session_state.canvas_key = 0
 
+_, col, _ = st.columns([1, 2.8, 1])
+with col:
     canvas = st_canvas(
         fill_color="black",
         stroke_width=22,
@@ -108,19 +83,19 @@ with col_right:
         width=280,
         height=280,
         drawing_mode="freedraw",
+        display_toolbar=False,
         key=f"canvas_{st.session_state.canvas_key}"
     )
 
     col1, col2 = st.columns([1, 2])
     with col1:
-        if st.button("NEW", type="secondary", use_container_width=True):
+        if st.button("NEW"):
             st.session_state.canvas_key += 1
             st.session_state.prediction = ""
             st.session_state.confidence = ""
             st.rerun()
-
     with col2:
-        if st.button("PREDICT →", type="primary", use_container_width=True):
+        if st.button("PREDICT →"):
             if canvas.image_data is not None:
                 img = Image.fromarray(canvas.image_data.astype(np.uint8))
                 img = img.convert('L')
@@ -133,5 +108,9 @@ with col_right:
                 st.session_state.confidence = f"{confidence:.1f}%"
 
     if st.session_state.get("prediction"):
-        st.markdown(f'<div class="result-digit">{st.session_state.prediction}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="result-confidence">confidence: {st.session_state.confidence}</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+            <div style="text-align:center; margin-top:1.5rem;">
+                <div style="font-family:'Space Mono',monospace; font-size:72px; font-weight:700; color:#e8ff47; line-height:1;">{st.session_state.prediction}</div>
+                <div style="font-family:'Space Mono',monospace; font-size:12px; color:#555; margin-top:6px;">confidence: {st.session_state.confidence}</div>
+            </div>
+        """, unsafe_allow_html=True)
