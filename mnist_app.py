@@ -101,6 +101,10 @@ with col:
                 img = img.convert('L')
                 img = img.resize((28, 28))
                 img_array = np.array(img).reshape(1, 784) / 255.0
+                
+                # DEBUG - remove later
+                st.image(img.resize((140, 140), Image.NEAREST), caption="What the model sees")
+                
                 prediction = model.predict(img_array)
                 probabilities = model.predict_proba(img_array)[0]
                 confidence = probabilities.max() * 100
